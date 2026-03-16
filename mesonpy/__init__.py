@@ -436,9 +436,20 @@ class _WheelBuilder():
                 if match:
                     abi = match.group('abi')
                     if abi is not None and abi != 'abi3':
-                        raise BuildError(
-                            f'The package declares compatibility with Python limited API but extension '
-                            f'module {os.fspath(entry.dst)!r} is tagged for a specific Python version.')
+                        if abi == 'abi3t' and not self._freethreading_limited_api:
+                            msg = (
+                                'The package does not declare compatibility with the free-threaded '
+                                f'Python limited API but extension module {os.fspath(entry.dst)!r} '
+                                'is tagged for the free-threaded limited ABI'
+                            )
+                        elif abi == 'abi3t':
+                            continue
+                        else:
+                            msg = (
+                                'The package declares compatibility with Python limited API but extension '
+                                f'module {os.fspath(entry.dst)!r} is tagged for a specific Python version.'
+                            )
+                        raise BuildError(msg)
             if self._freethreading_limited_api:
                 return 'abi3t'
             return 'abi3'
